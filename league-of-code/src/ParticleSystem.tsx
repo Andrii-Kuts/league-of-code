@@ -8,9 +8,9 @@ interface ParticleSystemProps {
 }
 
 const STAR_COEFFICIENT = 0.3;
-const NODE_SIZE = 10;
-const LINE_COLOR = "rgba(128,128,128,0.15)";
-const NODES_DISTANCE = 30;
+const NODE_SIZE = 4;
+const LINE_COLOR = "rgba(240,240,240,1)";
+const NODES_DISTANCE = 35;
 const SPEED_DAMPING = 0.8;
 class Particle {
   x: number;
@@ -27,8 +27,10 @@ class Particle {
   parentSize: number;
   velocityX: number;
   velocityY: number;
+  group: number;
+  pulse: number;
   
-  constructor(x: number, y: number, size: number, colorPrefix: string, opacity: number, parent: number) {
+  constructor(x: number, y: number, size: number, colorPrefix: string, opacity: number, parent: number, group: number) {
     this.x = x;
     this.y = y;
     this.parent = parent;
@@ -43,11 +45,13 @@ class Particle {
     this.timeOffset = Math.random() * Math.PI*2;
     this.velocityX = 0;
     this.velocityY = 0;
+    this.group = group;
+    this.pulse = 1;
   }
   
   update(time: number, parentX: number, parentY: number, parentSize: number) {  
-    const pulse = 1 + Math.sin(time * 0.01 + this.timeOffset) * 0.05;
-    this.size = this.baseSize * pulse;
+    this.pulse = Math.sin(time * 0.01 + this.timeOffset);
+    this.size = this.baseSize * (1 + this.pulse * 0.1);
     this.velocityX *= SPEED_DAMPING;
     this.velocityY *= SPEED_DAMPING;
     this.x += this.velocityX;
@@ -95,23 +99,26 @@ class Particle {
     ctx.fill();
   }
 
-  drawEdge(ctx: CanvasRenderingContext2D) {
-    if(!this.hasParent)
+  drawEdge(ctx: CanvasRenderingContext2D, particle: Particle | null) {
+    if ( particle == null )
       return;
     ctx.strokeStyle = LINE_COLOR;
     ctx.beginPath();
-    const dx = this.parentX - this.x;
-    const dy = this.parentY - this.y;
-    const len2 = dx ** 2 + dy ** 2;
-    const minLen = this.size + this.parentSize;
-    if( len2 < minLen ** 2 )
-      return;
-    const len = Math.sqrt(len2);
+    // const dx = this.parentX - this.x;
+    // const dy = this.parentY - this.y;
+    // const len2 = dx ** 2 + dy ** 2;
+    // const minLen = this.size + this.parentSize;
+    // if( len2 < minLen ** 2 )
+    //   return;
+    // const len = Math.sqrt(len2);
 
-    ctx.moveTo(this.x + dx / len * this.size, this.y + dy / len * this.size);
-    ctx.lineTo(this.parentX - dx / len * this.parentSize, this.parentY - dy / len * this.parentSize);
+    // ctx.moveTo(this.x + dx / len * this.size, this.y + dy / len * this.size);
+    // ctx.lineTo(this.parentX - dx / len * this.parentSize, this.parentY - dy / len * this.parentSize);
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(particle.x, particle.y);
     ctx.closePath();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
+    // ctx.lineWidth = 1 * (this.pulse);
     ctx.stroke();
   }
 }
@@ -125,6 +132,8 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
   const timeRef = useRef<number>(0);
   const lastProgressRef = useRef<string>('');
   const mouseRef = useRef({ x: -1000, y: -1000 });
+  const mouseClickRef = useRef<boolean>(false);
+  const scaleRef = useRef<number>(1);
   
   const courseColorMap: Record<string, string> = {
     python1: 'blue',
@@ -140,12 +149,22 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
     const centerY = height / 2;
     const particles: Particle[] = [];
 
+    const scaleCoefficient = (nodesCount: number) => {
+      console.log(nodesCount);
+      if(nodesCount == 0)
+          return 1.0;
+      return Math.min(1, 14 / Math.sqrt(nodesCount));
+    }
+
     const radiusFromProgress = (progress: number) => {
-      return progress * 2 + NODE_SIZE;
+      return 3 * NODE_SIZE;
     }
 
     const nonEmptyCourses = Object.entries(courseProgress)
       .filter(([_, progress]) => progress > 0);
+
+    const nodesCount = nonEmptyCourses.reduce((sum, [_, progress]) => sum + progress, 0);
+    scaleRef.current = scaleCoefficient(nodesCount);
 
     nonEmptyCourses.forEach(([courseId, progress], index) => {
       if(progress == 0)
@@ -155,11 +174,12 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
         const colorKey = courseColorMap[courseId];
         const config = courseColorConfigs[colorKey];
         const colorPrefix = config.particles[Math.floor(Math.random() * config.particles.length)];
-        const angle = Math.PI * 2 / nonEmptyCourses.length * index;
-        const dist = 100;
+        // const angle = Math.PI * 2 / nonEmptyCourses.length * index;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 200;
         const x = centerX + Math.cos(angle) * dist;
         const y = centerY + Math.sin(angle) * dist;
-        const particle = new Particle(x, y, radiusFromProgress(progress), colorPrefix, 0.6, -1);
+        const particle = new Particle(x, y, radiusFromProgress(progress) * scaleRef.current, colorPrefix, 1, -1, index);
         particles.push(particle);
         return { particle: particle, index: particles.length-1 };
       }
@@ -185,7 +205,7 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
         const colorPrefix = config.particles[Math.floor(Math.random() * config.particles.length)];
         const x = courseParticle.x + Math.cos(angle) * distance;
         const y = courseParticle.y + Math.sin(angle) * distance;
-        const particle = new Particle(x, y, NODE_SIZE, colorPrefix, 0.3, courseParticleIndex);
+        const particle = new Particle(x, y, NODE_SIZE * scaleRef.current, colorPrefix, 1, courseParticleIndex, index);
         particles.push(particle);
 
         angle += angleDelta;
@@ -235,6 +255,7 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
       }
     };
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousedown", (_) => mouseClickRef.current = true);
 
     let resizeTimeout: number | undefined;
     let lastWidth = 0;
@@ -308,30 +329,59 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
       
       const particles = particlesRef.current;
       const mouse = mouseRef.current;
+      let repulsionForce = 3;
+      let repulsionRadius = 80;
+      let isInversed = false;
+      if ( mouseClickRef.current ) {
+        // repulsionForce = -3;
+        repulsionRadius = 160;
+        repulsionForce = 40;
+        // isInversed = true;
+        mouseClickRef.current = false;
+      }
 
       for( let i = 0; i < particles.length; i++ ) {
         const particle = particles[i];
         let fx = 0;
         let fy = 0;
-        const attractionCoefficient = 0.003;
-        const targetX = particle.parent == -1 ? centerX : particles[particle.parent].x;
-        const targetY = particle.parent == -1 ? centerY : particles[particle.parent].y;
+        const attractionCoefficient = 0.001;
+        // const targetX = particle.parent == -1 ? centerX : particles[particle.parent].x;
+        // const targetY = particle.parent == -1 ? centerY : particles[particle.parent].y;
+        const targetX = centerX;
+        const targetY = centerY;
         fx += attractionCoefficient * (targetX - particle.x);
         fy += attractionCoefficient * (targetY - particle.y);
-        const padding = NODES_DISTANCE;
-        for( let j = 0; j < particles.length; j++ ) {
-          if( i == j )
+        const mouseDistance2 = (mouse.x - particle.x) ** 2 + (mouse.y - particle.y) ** 2;
+        const mouseDistance = Math.sqrt(mouseDistance2);
+        if ( mouseDistance < repulsionRadius ) {
+          const t = (repulsionRadius - mouseDistance) / repulsionRadius;
+          const force = repulsionForce * (isInversed ? t-1 : t);
+          fx += (particle.x - mouse.x) / mouseDistance * force;
+          fy += (particle.y - mouse.y) / mouseDistance * force;
+        }
+        let drawCnt = 0;
+        for ( let j = 0; j < particles.length; j++ ) {
+          if ( i == j )
             continue;
           const particle2 = particles[j];
           const dist2 = (particle.x - particle2.x) ** 2 + (particle.y - particle2.y) ** 2;
           const dist = Math.sqrt(dist2);
+          const sameGroup = particle.group == particle2.group;
+          const padding = NODES_DISTANCE * scaleRef.current * (sameGroup ? 1 : 3);
           let wantedDistance = padding + particle.size + particle2.size;
-          wantedDistance = wantedDistance ** 2;
-          if( dist2 < wantedDistance ) {
-            const force = 5 * (wantedDistance - dist2) / wantedDistance;
-            const relativeForce = (force * particle2.size ** 2) / (particle.size ** 2 + particle2.size ** 2);
+          if ( dist < wantedDistance ) {
+            const t = (wantedDistance - dist) / wantedDistance;
+            const force = 8 * t;
+            // const relativeForce = force;
+            const relativeForce = (force * particle2.size) / (particle.size + particle2.size);
+            // const relativeForce = (force * particle2.size ** 2) / (particle.size ** 2 + particle2.size ** 2);
             fx += (particle.x - particle2.x) / dist * relativeForce;
             fy += (particle.y - particle2.y) / dist * relativeForce;
+
+          }
+          if ( sameGroup && drawCnt < 5 && dist < wantedDistance + 1) {
+            particle.drawEdge(ctx, particle2);
+            drawCnt++;
           }
         }
         particle.velocityX += fx;
@@ -344,7 +394,6 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
         const parentSize = parent ? parent.size : 0;
         particle.update(timeRef.current, parentX, parentY, parentSize);
       });
-      particles.forEach(particle => particle.drawEdge(ctx));
       particles.forEach(particle => particle.draw(ctx));
       
       animationFrameRef.current = requestAnimationFrame(animate);
