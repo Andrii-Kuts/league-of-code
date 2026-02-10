@@ -7,7 +7,6 @@ interface ParticleSystemProps {
   particlesPerCourse?: number;
 }
 
-const STAR_COEFFICIENT = 0.3;
 const NODE_SIZE = 4;
 const LINE_COLOR = "rgba(240,240,240,1)";
 const NODES_DISTANCE = 35;
@@ -72,53 +71,15 @@ class Particle {
     ctx.fill();
   }
 
-  drawDiamond(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = this.colorPrefix + this.opacity.toFixed(2) + ')';
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y - this.size);
-    ctx.lineTo(this.x + this.size, this.y);
-    ctx.lineTo(this.x, this.y + this.size);
-    ctx.lineTo(this.x - this.size, this.y);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  drawStar(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = this.colorPrefix + this.opacity.toFixed(2) + ')';
-    ctx.beginPath();
-    const size2 = this.size * STAR_COEFFICIENT;
-    ctx.moveTo(this.x, this.y - this.size);
-    ctx.lineTo(this.x + size2, this.y - size2);
-    ctx.lineTo(this.x + this.size, this.y);
-    ctx.lineTo(this.x + size2, this.y + size2);
-    ctx.lineTo(this.x, this.y + this.size);
-    ctx.lineTo(this.x - size2, this.y + size2);
-    ctx.lineTo(this.x - this.size, this.y);
-    ctx.lineTo(this.x - size2, this.y - size2);
-    ctx.closePath();
-    ctx.fill();
-  }
-
   drawEdge(ctx: CanvasRenderingContext2D, particle: Particle | null) {
     if ( particle == null )
       return;
     ctx.strokeStyle = LINE_COLOR;
     ctx.beginPath();
-    // const dx = this.parentX - this.x;
-    // const dy = this.parentY - this.y;
-    // const len2 = dx ** 2 + dy ** 2;
-    // const minLen = this.size + this.parentSize;
-    // if( len2 < minLen ** 2 )
-    //   return;
-    // const len = Math.sqrt(len2);
-
-    // ctx.moveTo(this.x + dx / len * this.size, this.y + dy / len * this.size);
-    // ctx.lineTo(this.parentX - dx / len * this.parentSize, this.parentY - dy / len * this.parentSize);
     ctx.moveTo(this.x, this.y);
     ctx.lineTo(particle.x, particle.y);
     ctx.closePath();
     ctx.lineWidth = 1;
-    // ctx.lineWidth = 1 * (this.pulse);
     ctx.stroke();
   }
 }
@@ -153,17 +114,15 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
       console.log(nodesCount);
       if(nodesCount == 0)
           return 1.0;
-      return Math.min(1, 14 / Math.sqrt(nodesCount));
-    }
-
-    const radiusFromProgress = (progress: number) => {
-      return 3 * NODE_SIZE;
+      return Math.min(1, 12 / Math.sqrt(nodesCount));
     }
 
     const nonEmptyCourses = Object.entries(courseProgress)
       .filter(([_, progress]) => progress > 0);
 
-    const nodesCount = nonEmptyCourses.reduce((sum, [_, progress]) => sum + progress, 0);
+    let nodesCount = nonEmptyCourses.reduce((sum, [_, progress]) => sum + progress, 0);
+    const fakeNodesCount = Math.max(0, 100 - nodesCount);
+    nodesCount += fakeNodesCount;
     scaleRef.current = scaleCoefficient(nodesCount);
 
     nonEmptyCourses.forEach(([courseId, progress], index) => {
@@ -174,44 +133,39 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
         const colorKey = courseColorMap[courseId];
         const config = courseColorConfigs[colorKey];
         const colorPrefix = config.particles[Math.floor(Math.random() * config.particles.length)];
-        // const angle = Math.PI * 2 / nonEmptyCourses.length * index;
         const angle = Math.random() * Math.PI * 2;
-        const dist = 200;
+        const dist = Math.random() * 30;
         const x = centerX + Math.cos(angle) * dist;
         const y = centerY + Math.sin(angle) * dist;
-        const particle = new Particle(x, y, radiusFromProgress(progress) * scaleRef.current, colorPrefix, 1, -1, index);
+        const particle = new Particle(x, y, 3 * NODE_SIZE * scaleRef.current, colorPrefix, 1, -1, index);
         particles.push(particle);
         return { particle: particle, index: particles.length-1 };
       }
 
       const { particle: courseParticle, index: courseParticleIndex } = createCourseParticle();
       
-      let layerParticles = 0;
-      let layerIndex = 0;
-      let distance = courseParticle.size;
-      let angle = 0;
-      let angleDelta = 0;
       for( let i = 0; i < progress; i++ ) {
-        if( layerIndex == layerParticles ) {
-          distance += NODES_DISTANCE;
-          // layerParticles = nodesPerRadius(distance);
-          layerParticles = progress;
-          layerIndex = 0;
-          angle = Math.random() * Math.PI * 2;
-          angleDelta = Math.PI * 2 / layerParticles;
-        }
         const colorKey = courseColorMap[courseId];
         const config = courseColorConfigs[colorKey];
         const colorPrefix = config.particles[Math.floor(Math.random() * config.particles.length)];
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 100;
         const x = courseParticle.x + Math.cos(angle) * distance;
         const y = courseParticle.y + Math.sin(angle) * distance;
         const particle = new Particle(x, y, NODE_SIZE * scaleRef.current, colorPrefix, 1, courseParticleIndex, index);
         particles.push(particle);
-
-        angle += angleDelta;
-        layerIndex++;
       }
     });
+
+    for ( let i = 0; i < fakeNodesCount; i++ ) {
+      const colorPrefix = "rgba(230,230,230,";
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 100;
+      const x = centerX / 2 + Math.cos(angle) * distance;
+      const y = centerY / 2 + Math.sin(angle) * distance;
+      const particle = new Particle(x, y, NODE_SIZE * scaleRef.current, colorPrefix, 1, -1, -1-Math.floor(Math.random() * 3));
+      particles.push(particle);
+    }
     
     return particles;
   }, [courseProgress]);
@@ -318,35 +272,42 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
 
       ctx.clearRect(0, 0, width, height);
       
-      // const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      // const data = imageData.data;
-
-      // for (let i = 0; i < data.length; i += 4) {
-      //   data[i+3] = Math.max(0, Math.floor(Math.pow(data[i+3], 0.99)));
-      // }
-
-      // ctx.putImageData(imageData, 0, 0);
-      
       const particles = particlesRef.current;
       const mouse = mouseRef.current;
       let repulsionForce = 3;
       let repulsionRadius = 80;
-      let isInversed = false;
       if ( mouseClickRef.current ) {
-        // repulsionForce = -3;
         repulsionRadius = 160;
         repulsionForce = 40;
-        // isInversed = true;
         mouseClickRef.current = false;
       }
 
+      const basePadding = NODES_DISTANCE * scaleRef.current;
+      const gridSize = NODE_SIZE * 6 * scaleRef.current + basePadding * 3;
+      const gridSizeInv = 1 / gridSize;
+      const grid = new Map<number, number[]>();
+
+      const posHash = (x: number, y: number) => {
+        return x * 1e9 + y;
+      }
+
+      particles.forEach((particle, index) => {
+        const gridX = Math.floor(particle.x * gridSizeInv);
+        const gridY = Math.floor(particle.y * gridSizeInv);
+        const pos = posHash(gridX, gridY);
+        if ( !grid.has(pos) ) {
+          grid.set(pos, [index]);
+        } else {
+          grid.get(pos)!.push(index);
+        }
+      })
+
+      let totCalcs = 0;
       for( let i = 0; i < particles.length; i++ ) {
         const particle = particles[i];
         let fx = 0;
         let fy = 0;
-        const attractionCoefficient = 0.001;
-        // const targetX = particle.parent == -1 ? centerX : particles[particle.parent].x;
-        // const targetY = particle.parent == -1 ? centerY : particles[particle.parent].y;
+        const attractionCoefficient = 0.0005;
         const targetX = centerX;
         const targetY = centerY;
         fx += attractionCoefficient * (targetX - particle.x);
@@ -354,39 +315,49 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
         const mouseDistance2 = (mouse.x - particle.x) ** 2 + (mouse.y - particle.y) ** 2;
         const mouseDistance = Math.sqrt(mouseDistance2);
         if ( mouseDistance < repulsionRadius ) {
-          const t = (repulsionRadius - mouseDistance) / repulsionRadius;
-          const force = repulsionForce * (isInversed ? t-1 : t);
+          const force = repulsionForce * (repulsionRadius - mouseDistance) / repulsionRadius
           fx += (particle.x - mouse.x) / mouseDistance * force;
           fy += (particle.y - mouse.y) / mouseDistance * force;
         }
         let drawCnt = 0;
-        for ( let j = 0; j < particles.length; j++ ) {
-          if ( i == j )
-            continue;
-          const particle2 = particles[j];
-          const dist2 = (particle.x - particle2.x) ** 2 + (particle.y - particle2.y) ** 2;
-          const dist = Math.sqrt(dist2);
-          const sameGroup = particle.group == particle2.group;
-          const padding = NODES_DISTANCE * scaleRef.current * (sameGroup ? 1 : 3);
-          let wantedDistance = padding + particle.size + particle2.size;
-          if ( dist < wantedDistance ) {
-            const t = (wantedDistance - dist) / wantedDistance;
-            const force = 8 * t;
-            // const relativeForce = force;
-            const relativeForce = (force * particle2.size) / (particle.size + particle2.size);
-            // const relativeForce = (force * particle2.size ** 2) / (particle.size ** 2 + particle2.size ** 2);
-            fx += (particle.x - particle2.x) / dist * relativeForce;
-            fy += (particle.y - particle2.y) / dist * relativeForce;
 
-          }
-          if ( sameGroup && drawCnt < 5 && dist < wantedDistance + 1) {
-            particle.drawEdge(ctx, particle2);
-            drawCnt++;
+        const gridX = Math.floor(particle.x * gridSizeInv);
+        const gridY = Math.floor(particle.y * gridSizeInv);
+        for ( let dx = -1; dx <= 1; dx++ ) {
+          for( let dy = -1; dy <= 1; dy++ ) {
+            const pos = posHash(gridX + dx, gridY + dy);
+            if( !grid.has(pos) ) {
+              continue;
+            }
+            grid.get(pos)!.forEach(j => {
+              if ( i == j )
+                return;
+              totCalcs++;
+              const particle2 = particles[j];
+              const dist2 = (particle.x - particle2.x) ** 2 + (particle.y - particle2.y) ** 2;
+              const sameGroup = particle.group == particle2.group;
+              const padding = basePadding * (sameGroup ? 1 : 3);
+              let wantedDistance = padding + particle.size + particle2.size;
+              if ( dist2 < wantedDistance ** 2 ) {
+                const dist = Math.sqrt(dist2);
+                const t = (wantedDistance - dist) / wantedDistance;
+                const force = 6 * t;
+                const relativeForce = (force * particle2.size) / (particle.size + particle2.size);
+                fx += (particle.x - particle2.x) / dist * relativeForce;
+                fy += (particle.y - particle2.y) / dist * relativeForce;
+
+              }
+              if ( sameGroup && drawCnt < 5 && dist2 < (wantedDistance + 1) ** 2 ) {
+                particle.drawEdge(ctx, particle2);
+                drawCnt++;
+              }
+            })
           }
         }
         particle.velocityX += fx;
         particle.velocityY += fy;
       }
+      // console.log(totCalcs / particles.length);
       particles.forEach(particle => {
         const parent = particle.parent == -1 ? null : particles[particle.parent];
         const parentX = parent ? parent.x : 0;
