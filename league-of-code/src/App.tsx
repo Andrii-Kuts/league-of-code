@@ -4,6 +4,8 @@ import { useCourseProgress } from './CourseProgressContext';
 import { ParticleSystem } from './ParticleSystem';
 import { CourseCard } from './CourseCard';
 import { initialCourses, initialProgress } from './courseData';
+import { Footer } from './Footer';
+import './Footer.css';
 import './App.css';
 
 const Hero: React.FC = () => {
@@ -49,6 +51,7 @@ const App: React.FC = () => {
       <div className="app">
         <Hero />
         <CoursesSection />
+        <Footer />
       </div>
     </CourseProgressProvider>
   );

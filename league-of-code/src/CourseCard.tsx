@@ -34,23 +34,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         <div className="course-progress">
           <div className="progress-label">
             <span>Progress</span>
-            <span className="progress-percentage">{progress}%</span>
+            <span className="progress-percentage">{progress}/{course.stats.lessons}</span>
           </div>
           <div className="progress-bar-container">
             <div 
               className={`progress-bar-fill ${course.color}`}
               style={{ 
-                width: `${progress}%`,
+                width: `${progress / course.stats.lessons * 100}%`,
                 background: config.button
               }}
             />
           </div>
-        </div>
-        
-        <div className="course-tags">
-          {course.tags.map((tag, idx) => (
-            <span key={idx} className="tag">{tag}</span>
-          ))}
         </div>
         
         <div className="course-stats">
@@ -61,10 +55,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           <div className="stat">
             <div className="stat-value">{course.stats.duration}</div>
             <div className="stat-label">Duration</div>
-          </div>
-          <div className="stat">
-            <div className="stat-value">{course.stats.projects}</div>
-            <div className="stat-label">Projects</div>
           </div>
         </div>
         

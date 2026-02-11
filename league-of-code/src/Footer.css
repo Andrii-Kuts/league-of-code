@@ -1,0 +1,213 @@
+/* Footer.css - Solarized Light Theme */
+
+:root {
+  --base03: #002b36;
+  --base02: #073642;
+  --base01: #586e75;
+  --base00: #657b83;
+  --base0: #839496;
+  --base1: #b1bccd;
+  --base2: #f5f7f9;
+  --base3: #f8f8f8;
+  --yellow: #b58900;
+  --orange: #cb4b16;
+  --red: #dc322f;
+  --magenta: #d33682;
+  --violet: #6c71c4;
+  --blue: #268bd2;
+  --cyan: #2aa198;
+  --green: #859900;
+}
+
+.main-footer {
+  margin-top: auto;
+  background-color: var(--base2);
+  color: var(--base00);
+  position: relative;
+  z-index: 20;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+
+  /* Subtle Blue Grid pattern */
+  background-image: 
+    linear-gradient(to right, rgba(38, 139, 210, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(38, 139, 210, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  padding: 60px 20px;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* CTA Card */
+.footer-cta {
+  background-color: var(--base3);
+  color: var(--base00);
+  border: 2px solid var(--base1);
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s;
+}
+
+.footer-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.1);
+  border-color: var(--blue);
+}
+
+.cta-text h2 {
+  font-size: 1.8rem;
+  color: var(--blue);
+  font-weight: 600;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.cta-text p {
+  font-size: 1rem;
+  color: var(--base01);
+  line-height: 1.5;
+}
+
+.cta-btn {
+  background-color: var(--blue);
+  color: var(--base3);
+  padding: 15px 30px;
+  border: 2px solid var(--blue);
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 4px 4px 0px 0px var(--base1);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.cta-btn:hover {
+  box-shadow: 6px 6px 0px 0px var(--base1);
+  transform: translate(-2px, -2px);
+}
+
+.cta-btn:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0px 0px var(--base1);
+}
+
+/* Footer Navigation (Badges) */
+.footer-badges {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.footer-badge {
+  color: var(--base00);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.footer-badge:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+/* Bottom Info Section */
+.footer-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding-top: 30px;
+  border-top: 1px dashed var(--base1);
+}
+
+.footer-brand h3 {
+  color: var(--base01);
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.footer-brand p,
+.footer-brand a {
+  color: var(--base00);
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 5px;
+  text-decoration: none;
+}
+
+.footer-brand a:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.contact-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.contact-pill {
+  background-color: var(--base3);
+  border: 2px solid var(--base1);
+  padding: 12px 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--base01);
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.contact-pill:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.contact-pill svg {
+  stroke: var(--base00);
+}
+
+/* Desktop Layout Adjustments */
+@media (min-width: 768px) {
+  .footer-cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cta-text {
+    flex: 1;
+    margin-right: 40px;
+  }
+
+  .footer-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .contact-grid {
+    width: 320px;
+  }
+}

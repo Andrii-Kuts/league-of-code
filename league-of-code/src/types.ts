@@ -5,11 +5,9 @@ export interface Course {
   description: string
   icon: string
   color: string
-  tags: string[]
   stats: {
     lessons: number
     duration: string
-    projects: number
   }
   comingSoon?: boolean
 }
