@@ -100,11 +100,11 @@ export const initialCourses: Course[] = [
 ];
 
 export const initialProgress: CourseProgress = {
-  python1: 50,
-  python2: 0,
-  math101: 0,
-  datascience: 0,
-  webdev: 0,
-  algorithms: 0,
+  python1: 1000,
+  python2: 1000,
+  math101: 1000,
+  datascience: 1000,
+  webdev: 1000,
+  algorithms: 1000,
 };
 
