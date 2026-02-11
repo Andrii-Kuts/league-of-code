@@ -37,7 +37,8 @@ const courseColorConfigs = {
 
 const courses = [
   {
-    id: 'python1',
+    id: 297,
+    innerName: 'python1',
     name: 'Python 1',
     level: 'Beginner',
     description: 'Master the fundamentals of Python programming with hands-on projects and interactive coding exercises.',
@@ -46,7 +47,8 @@ const courses = [
     stats: { lessons: 150, duration: '4h' },
   },
   {
-    id: 'python2',
+    id: 308,
+    innerName: 'python2',
     name: 'Python 2',
     level: 'Advanced',
     description: 'Advanced Python concepts including OOP, web frameworks, and real-world application development.',
@@ -55,7 +57,8 @@ const courses = [
     stats: { lessons: 100, duration: '6h' },
   },
   {
-    id: 'math101',
+    id: 220,
+    innerName: 'math101',
     name: 'Math 101',
     level: 'Foundation',
     description: 'Build a strong mathematical foundation with interactive problem-solving and visual learning tools.',
@@ -64,7 +67,8 @@ const courses = [
     stats: { lessons: 60, duration: '5h' },
   },
   {
-    id: 'math-ml',
+    id: 0,
+    innerName: 'math-ml',
     name: 'Math for ML',
     level: 'Advanced',
     description: 'Learn data analysis, visualization, and machine learning fundamentals with Python and popular libraries.',
@@ -72,13 +76,14 @@ const courses = [
     color: 'purple',
     stats: { lessons: 100, duration: '8h' },
     comingSoon: true,
+    launchDate: 'Feb 2026',
   },
 ];
 
 const courseProgress = {
-  python1: 100,
-  python2: 90,
-  math101: 5,
+  python1: 3,
+  python2: 0,
+  math101: 0,
   'math-ml': 0,
 };
 
@@ -269,8 +274,8 @@ class ParticleSystem {
       const colorPrefix = "rgba(230,230,230,";
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.random() * 100;
-      const x = centerX / 2 + Math.cos(angle) * distance;
-      const y = centerY / 2 + Math.sin(angle) * distance;
+      const x = centerX + Math.cos(angle) * distance;
+      const y = centerY + Math.sin(angle) * distance;
       const particle = new Particle(x, y, NODE_SIZE * this.scale, colorPrefix, 1, -1, -1 - Math.floor(Math.random() * 3));
       particles.push(particle);
     }
@@ -426,7 +431,7 @@ function renderCourseCards() {
   
   courses.forEach(course => {
     const config = courseColorConfigs[course.color];
-    const progress = Math.max(0, Math.min(100, courseProgress[course.id] || 0));
+    const progress = Math.max(0, Math.min(100, courseProgress[course.innerName] || 0));
     const progressPercentage = Math.round((progress / course.stats.lessons) * 100);
     
     const card = document.createElement('div');
@@ -446,18 +451,23 @@ function renderCourseCards() {
       <div class="card-body">
         <p class="course-description">${course.description}</p>
         
-        <div class="course-progress">
-          <div class="progress-label">
-            <span>Progress</span>
-            <span class="progress-percentage">${progress}/${course.stats.lessons}</span>
-          </div>
-          <div class="progress-bar-container">
-            <div 
-              class="progress-bar-fill"
-              style="width: ${progressPercentage}%; background: ${config.button}"
-            ></div>
-          </div>
-        </div>
+        ${course.comingSoon
+          ? `<div class="course-launch-date">
+            Launching: <span class="course-launch-date-date">${course.launchDate}</span>
+          </div>`
+          : `<div class="course-progress">
+            <div class="progress-label">
+              <span>Progress</span>
+              <span class="progress-percentage">${progress}/${course.stats.lessons}</span>
+            </div>
+            <div class="progress-bar-container">
+              <div 
+                class="progress-bar-fill"
+                style="width: ${progressPercentage}%; background: ${config.button}"
+              ></div>
+            </div>
+          </div>`
+        }
         
         <div class="course-stats">
           <div class="stat">
@@ -472,7 +482,7 @@ function renderCourseCards() {
         
         ${course.comingSoon 
           ? '<span class="course-btn" style="background: #9ca3af">Coming Soon</span>'
-          : `<a href="#" class="course-btn" style="background: ${config.button}">Start Learning</a>`
+          : `<a href="/course/view.php?id=${course.id}" class="course-btn" style="background: ${config.button}">Start Learning</a>`
         }
       </div>
     `;
